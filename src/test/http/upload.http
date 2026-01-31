@@ -1,0 +1,9 @@
+POST http://localhost:8080/api/files/upload
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="sample.txt"
+Content-Type: text/plain
+
+< ../resources/files/sample.txt
+--boundary--
