@@ -24,9 +24,9 @@ public class MinioStorageClient implements ExternalFileStorageClient {
 
     public MinioStorageClient(
             @Value("${storage.minio.endpoint}") String endpoint,
-            @Value("${storage.minio.bucket}") String bucket,
             @Value("${storage.minio.access-key}") String accessKey,
             @Value("${storage.minio.secret-key}") String secretKey,
+            @Value("${storage.minio.bucket}") String bucket,
             @Value("${storage.minio.public-base-url}") String publicBaseUrl
     ) {
         this.minioClient = MinioClient.builder()
@@ -39,19 +39,20 @@ public class MinioStorageClient implements ExternalFileStorageClient {
 
     @Override
     public UploadResultDto upload(MultipartFile file) throws Exception {
-        String objectName = file.getOriginalFilename();
-
-        if (objectName == null || objectName.isBlank()) {
-            objectName = UUID.randomUUID().toString();
-            log.warn("Original filename is null/blank, generated objectName={}", objectName);
+        String originalName = file.getOriginalFilename();
+        if (originalName == null || originalName.isBlank()) {
+            originalName = "file";
         }
 
-        log.info("Uploading file to MinIO. bucket={}, objectName={}", bucket, objectName);
+        String objectName = UUID.randomUUID() + "_" + originalName;
+
+        log.info("Uploading file to MinIO. bucket={}, objectName={}, originalName={}",
+                bucket, objectName, originalName);
 
         try (InputStream is = file.getInputStream()) {
             PutObjectArgs args = PutObjectArgs.builder()
                     .bucket(bucket)
-                    .object(objectName) // <-- кладём в MinIO под этим именем
+                    .object(objectName)
                     .stream(is, file.getSize(), -1)
                     .contentType(file.getContentType())
                     .build();
